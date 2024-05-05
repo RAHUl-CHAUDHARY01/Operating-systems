@@ -1,0 +1,60 @@
+//sjf scheduling
+#include<iostream>
+#include<algorithm>
+#include<vector>
+using namespace std;
+int main() {
+    vector<pair<int, int>> gantt;
+    int time, burst_time[10], at[10], sum_burst_time = 0, smallest, n, i;
+    int sumt = 0, sumw = 0;
+    cout << "Enter the number of processes: ";
+    cin >> n;
+    for (i = 0; i < n; i++) {
+        cout << "Enter the arrival time for process P" << i + 1 << ": ";
+        cin >> at[i];
+        cout << "Enter the burst time for process P" << i + 1 << ": ";
+        cin >> burst_time[i];
+        sum_burst_time += burst_time[i];
+    }
+    burst_time[9] = 9999;
+    cout<<"PROCESS |\tAT\t|\tBT\t|\tCT\t|\tTAT\t|\tWT"<<endl;
+    // gantt.push_back(make_pair(0,time+burst_time[smallest] ));
+    for (time = 0; time < sum_burst_time;) {
+        smallest = 9;
+        for (i = 0; i < n; i++) {
+            if (at[i] <= time && burst_time[i] > 0 && burst_time[i] < burst_time[smallest])
+                smallest = i;
+        }
+        gantt.push_back(make_pair(smallest+1,time+burst_time[smallest] ));
+        cout << "P[" << smallest + 1 << "]\t|\t"<<at[smallest] <<"\t|\t"<< burst_time[smallest]<<"\t|\t"<<time + burst_time[smallest]<<"\t|\t"<< time + burst_time[smallest] - at[smallest] << "\t|\t" << time - at[smallest] << endl;
+        sumt += time + burst_time[smallest] - at[smallest];
+        sumw += time - at[smallest];
+        time += burst_time[smallest];
+        burst_time[smallest] = 0;
+    }
+       cout << "Gantt Chart:" << endl;
+    for (int i = 0; i < gantt.size(); i++) {
+        cout <<"P"<<gantt[i].first + 1<<"\t";
+        if (i < gantt.size() - 1) {
+            cout << "|";
+        }
+    }
+    cout << endl;
+    cout<<"0\t";
+    for (int i = 0; i < gantt.size(); i++) {
+        cout << gantt[i].second ;
+        if (i < gantt.size() - 1) {
+            cout <<"\t";
+        }
+    }
+    cout<<endl;
+    sort(at,at+n);
+    cout<<"scheduling length ="<<time+burst_time[smallest]-at[0]<<endl;
+    double ThroughPut=(float)n/(time+burst_time[smallest]-at[0]);
+    cout<<"ThroughPut ="<<ThroughPut;
+    cout << "\nAverage waiting time = " << static_cast<float>(sumw) / n;
+    cout << "\nAverage turnaround time = " << static_cast<float>(sumt) / n;
+    return 0;
+}
+
+
