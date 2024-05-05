@@ -1,0 +1,149 @@
+//round robin
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <climits>
+using namespace std;
+
+void completiontime(int at[], int n, int bt[], int ct[], int processes[], bool check[], int rt[], int tq, vector<pair<int, int>>& gantt) {
+    bool completed[n] = {false};
+    int p = *min_element(at, at + n);
+    int r[n];
+    vector<int> v;
+    pair<int, int> c[n];
+    
+    for (int i = 0; i < n; i++) {
+        c[i] = make_pair(at[i], i);
+    }
+    sort(c, c + n);
+    for (int i = 0; i < n; i++) {
+        r[i] = bt[i];
+    }
+    sort(c, c + n);
+    int q = c[0].second;
+    for (int i = 0; i < n; i++) {
+        if (!completed[i] && at[c[i].second] <= p && find(v.begin(), v.end(), i) == v.end()) {
+            v.push_back(c[i].second);
+        }
+    }
+    while (true) {
+        if (r[q] > 0 && find(v.begin(), v.end(), q) == v.end()) {
+            v.push_back(q);  
+        }
+
+        if (v.empty()) {
+            break;
+        }
+
+        int z = v[0];
+        if (!completed[z] && r[z] > tq) {
+            if (!check[z]) {
+                rt[z] = p - at[z];
+                check[z] = true;
+            }
+            r[z] -= tq;
+            p += tq;
+            for (int i = 0; i < n; i++) {
+                if (!completed[c[i].second] && at[c[i].second] <= p && find(v.begin(), v.end(), c[i].second) == v.end()) {
+                    v.push_back(c[i].second);
+                }
+            }
+            gantt.push_back(make_pair(z, p));  // Add to Gantt chart
+            v.erase(v.begin());
+            q = z;
+        } else if (!completed[z] && r[z] <= tq) {
+            if (!check[z]) {
+                rt[z] = p - at[z];
+                check[z] = true;
+            }
+            p += r[z];
+            gantt.push_back(make_pair(z, p));  // Add to Gantt chart
+            r[z] = 0;
+            ct[z] = p;
+            completed[z] = true;
+            v.erase(v.begin());
+        }
+    }
+}
+
+void WaitingTime(int tat[], int n, int bt[], int wt[]) {
+    for (int i = 0; i < n; i++) {
+        wt[i] = tat[i] - bt[i];
+    }
+}
+
+void TurnAroundTime(int at[], int n, int ct[], int tat[]) {
+    for (int i = 0; i < n; i++) {
+        tat[i] = ct[i] - at[i];
+    }
+}
+
+void avgTime(int processes[], int n, int bt[], int ct[], int wt[], int tat[], int at[], int rt[]) {
+    int total_wt = 0, total_tat = 0, total_resp = 0;
+
+    cout << "PID" << "\t\t" << "A.T" << "\t\t" << "B.T" << "\t\t"  <<"C.T" << "\t\t" << "W.T" << "\t\t" << "R.T"<< "\t\t"  << "TAT\n";
+
+    for (int i = 0; i < n; i++) {
+        total_wt += wt[i];
+        total_tat += tat[i];
+        total_resp += rt[i];
+
+        cout << " " << processes[i] << "\t\t" << at[i] << "\t\t" << bt[i] << "\t\t" << ct[i] << "\t\t" << wt[i] << "\t\t" << rt[i] << "\t\t" << tat[i] << endl;
+    }
+
+    cout << "\nAverage waiting time = " << (float)total_wt / n;
+    cout << "\nAverage turn around time = " << (float)total_tat / n;
+    cout << "\nAverage response time = " << (float)total_resp / n << endl;
+}
+
+int main() {
+    int n=4;
+    // cout << "Enter the number of processes: ";
+    // cin >> n;
+    int tq=2;
+    int processes[n]={1,2,3,4};
+    int burst_time[n]={3,6,4,5};
+    int arrival_time[n]={0,0,0,0};
+    int completion_time[n];
+    int turnaround_time[n];
+    int waiting_time[n];
+    int response_time[n];
+    int min, max;
+    int scheduling_length;
+    float throughput;
+    bool check[n] = {false};
+    vector<pair<int, int>> gantt;
+
+    min = *min_element(arrival_time, arrival_time + n);
+    completiontime(arrival_time, n, burst_time, completion_time, processes, check, response_time, tq, gantt);
+    max = *max_element(completion_time, completion_time + n);
+    TurnAroundTime(arrival_time, n, completion_time, turnaround_time);
+    WaitingTime(turnaround_time, n, burst_time, waiting_time);
+
+    avgTime(processes, n, burst_time, completion_time, waiting_time, turnaround_time, arrival_time, response_time);
+
+    scheduling_length = max - min;
+    throughput = (float)n / scheduling_length;
+
+    cout << "Scheduling Length: " << scheduling_length << endl;
+    cout << "Throughput: " << throughput << endl;
+    cout << "Gantt Chart:" << endl;
+    for (int i = 0; i < gantt.size(); i++) {
+        cout << "P" << gantt[i].first + 1;
+        if (i < gantt.size() - 1) {
+            cout << " | ";
+        }
+    }
+    cout << endl;
+    cout<<"0"<<"  ";
+    for (int i = 0; i < gantt.size(); i++) {
+        cout << gantt[i].second << " ";
+        if (i < gantt.size() - 1) {
+            cout << "  ";
+        }
+    }
+    cout << endl;
+
+    return 0;
+}
+
