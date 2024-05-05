@@ -1,0 +1,69 @@
+//fcfs Scheduling
+#include<iostream>
+#include<vector>
+using namespace std;
+void findCompletionTime(int processes[], int n, int bt[], int at[], int ct[], vector<pair<int, int>>& gantt) {
+    ct[0] = at[0] + bt[0];
+    gantt.push_back(make_pair(0, ct[0]));
+    for (int i = 1; i < n; i++){
+        ct[i] = max(ct[i - 1], at[i]) + bt[i];
+        gantt.push_back(make_pair(i, ct[i]));
+    }
+    
+}
+void findTurnAroundTime(int processes[], int n, int at[], int ct[], int tat[]) {
+    for (int i = 0; i < n; i++)
+        tat[i] = ct[i] - at[i];
+}
+void findWaitingTime(int tat[], int bt[], int wt[], int n) {
+    for (int i = 0; i < n; i++)
+        wt[i] = tat[i] - bt[i];
+}
+void findavgTime(int processes[], int n, int bt[], int at[], vector<pair<int, int>>& gantt) {
+    int ct[n], tat[n], wt[n], total_wt = 0, total_tat = 0;
+    findCompletionTime(processes, n, bt, at, ct,gantt);
+    findTurnAroundTime(processes, n, at, ct, tat);
+    findWaitingTime(tat, bt, wt, n);
+    int maxct=0;
+    for(int i=0;i<n;i++){
+        if(maxct<ct[i]){
+            maxct=ct[i];
+        }
+    }
+    cout << "Processes " << " Arrival time " << " Burst time " << " Completion time " << " Turn around time " << " Waiting time\n";
+    for (int i = 0; i < n; i++) {
+        total_wt += wt[i];
+        total_tat += tat[i];
+        cout << " " << processes[i] << "\t\t" << at[i] << "\t\t" << bt[i] << "\t\t " << ct[i] << "\t\t " << tat[i] << "\t\t " << wt[i] << endl;
+    }
+    cout << "Average waiting time = " << (float)total_wt / (float)n;
+    cout << "\nAverage turn around time = " << (float)total_tat / (float)n<<endl;
+    cout<<"ThroughPut"<<(float)n/maxct<<endl;
+    cout<<"Scheduling length"<<maxct<<endl;
+}
+int main() {
+    int processes[] = { 1, 2, 3 };
+    vector<pair<int, int>> gantt;
+    int n = sizeof processes / sizeof processes[0];
+    int burst_time[] = { 10, 5, 8 };
+    int arrival_time[] = { 0, 10, 15 };
+    findavgTime(processes, n, burst_time, arrival_time,gantt);
+      cout << "Gantt Chart:" << endl;
+    for (int i = 0; i < gantt.size(); i++) {
+        cout <<"P"<<gantt[i].first + 1<<"\t";
+        if (i < gantt.size() - 1) {
+            cout << "|";
+        }
+    }
+    cout << endl;
+    cout<<"0\t";
+    for (int i = 0; i < gantt.size(); i++) {
+        cout << gantt[i].second ;
+        if (i < gantt.size() - 1) {
+            cout <<"\t";
+        }
+    }
+    return 0;
+}
+
+
