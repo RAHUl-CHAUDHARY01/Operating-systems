@@ -1,0 +1,67 @@
+#include <iostream>
+#include <vector>
+int main() {
+    int k = 0, a = 0, b = 0, process, no_of_resources, cnt = 0;
+    std::vector<int> instance(5), op(10), availability(5), P(10);
+    int allocated[10][5], need[10][5], MAX[10][5]; 
+   std::cout << "\nEnter the number of resources: ";
+    std::cin >> no_of_resources;
+    std::cout << "\nEnter the max instances of each resource\n";
+    for (int i = 0; i < no_of_resources; i++) {
+        availability[i] = 0;
+        std::cout << static_cast<char>(i + 97) << "=";
+        std::cin >> instance[i];
+    }
+    std::cout << "\nEnter the number of processes: ";
+    std::cin >> process;    
+    std::cout << "\nEnter the allocation matrix\n";
+    for (int i = 0; i < no_of_resources; i++)
+        std::cout << "    " << static_cast<char>(i + 97);
+    std::cout << "\n";
+    for (int i = 0; i < process; i++) {
+        P[i] = i;
+        std::cout << "P[" << i << "]";
+        for (int j = 0; j < no_of_resources; j++) {
+            std::cin >> allocated[i][j];
+            availability[j] += allocated[i][j];
+        }
+    }
+    
+    std::cout << "\nEnter the MAX matrix\n ";
+    for (int i = 0; i < no_of_resources; i++)
+        std::cout << " " << static_cast<char>(i + 97);
+    std::cout << "\n";
+    for (int i = 0; i < process; i++) {
+        std::cout << "P[" << i << "]";
+        for (int j = 0; j < no_of_resources; j++)
+            std::cin >> MAX[i][j];
+    }
+    std::cout << "\n";
+A:
+    a = -1;
+    for (int i = 0; i < process; i++) {
+        cnt = 0;
+        b = P[i];
+        for (int j = 0; j < no_of_resources; j++) {
+            need[b][j] = MAX[b][j] - allocated[b][j];
+            if (need[b][j] < availability[j])
+                cnt++;
+        }
+        if (cnt == no_of_resources) {
+            op[k++] = P[i];
+            for (int j = 0; j < no_of_resources; j++)
+                availability[j] += allocated[b][j];
+        } else
+            P[++a] = P[i];
+    }
+    if (a != -1) {
+        process = a + 1;
+    }
+    goto A;
+    std::cout << "\t <";
+    for (int i = 0; i < k; i++)
+        std::cout << " P[" << op[i] << "]";
+    std::cout << ">\n";
+    
+    return 0;
+}
