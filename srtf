@@ -1,0 +1,140 @@
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include <climits>
+
+using namespace std;
+
+void completion_time(int at[], int n, int bt[], int ct[], int processes[], bool check[], int rt[], vector<pair<int, int>>& gantt) {
+    bool completed[n] = {false};
+    int p = *min_element(at, at + n);
+    int r[n];
+    for (int i = 0; i < n; i++) {
+        r[i] = bt[i];
+    }
+    int z = 0;
+    while (true) {
+        int shortest = -1;
+        for (int i = 0; i < n; i++) {
+            if (!completed[i] && at[i] <= p) {
+                if (shortest == -1 || r[i] < r[shortest]) {
+                    shortest = i;
+                    if (!check[i]) {
+                        rt[i] = p - at[i];
+                        check[i] = true;
+                    }
+                }
+            }
+        }
+        if (shortest == -1) {
+            break;
+        }
+        if (gantt.empty() || gantt.back().first != shortest) {
+     gantt.push_back(make_pair(shortest, p));
+    }
+        r[shortest]--;
+        if (r[shortest] == 0) {
+            ct[shortest] = p + 1;
+            completed[shortest] = true;
+        }
+        
+        p++;
+    }
+}
+
+void WaitingTime(int tat[], int n, int bt[], int wt[]) {
+    for (int i = 0; i < n; i++) {
+        wt[i] = tat[i] - bt[i];
+    }
+}
+
+void TurnAroundTime(int at[], int n, int ct[], int tat[]) {
+    for (int i = 0; i < n; i++) {
+        tat[i] = ct[i] - at[i];
+    }
+}
+
+void avgTime(int processes[], int n, int bt[], int ct[], int wt[], int tat[], int at[], int rt[]) {
+    int total_wt = 0, total_tat = 0, total_resp = 0;
+
+    cout << "PID" << "\t\t" << " A.T "<< "\t\t"  << " B.T "<< "\t\t"  << "C.T" << "\t\t" << "W.T " << "\t\t" << "R.T" << "\t\t" << "TAT\n";
+
+    for (int i = 0; i < n; i++) {
+        total_wt += wt[i];
+        total_tat += tat[i];
+        total_resp += rt[i];
+
+        cout << " " << processes[i] << "\t\t" << at[i] << "\t\t" << bt[i] << "\t\t" << ct[i] << "\t\t" << wt[i] << "\t\t" << rt[i] << "\t\t" << tat[i] << endl;
+    }
+
+    cout << "\nAverage waiting time = " << (float) total_wt / n;
+    cout << "\nAverage turn around time = " << (float) total_tat / n;
+    cout << "\nAverage response time = " << (float) total_resp / n << endl;
+}
+
+int main() {
+    int n;
+    cout << "Enter the number of processes: ";
+    cin >> n;
+
+    int processes[n];
+    int burst_time[n];
+    int arrival_time[n];
+    int completiontime[n];
+    int turnaround_time[n];
+    int waiting_time[n];
+    int response_time[n];
+    int min, max;
+    int scheduling_length;
+    float throughput;
+    bool check[n] = {false};
+    vector<pair<int, int>> gantt;
+
+    cout << "Enter the process IDs: ";
+    for (int i = 0; i < n; i++) {
+        cin >> processes[i];
+    }
+
+    cout << "Enter the burst times: ";
+    for (int i = 0; i < n; i++) {
+        cin >> burst_time[i];
+    }
+
+    cout << "Enter the arrival times: ";
+    for (int i = 0; i < n; i++) {
+        cin >> arrival_time[i];
+    }
+
+    min = *min_element(arrival_time, arrival_time + n);
+    completion_time(arrival_time, n, burst_time, completiontime, processes, check, response_time, gantt);
+    max = *max_element(completiontime, completiontime + n);
+    TurnAroundTime(arrival_time, n, completiontime, turnaround_time);
+    WaitingTime(turnaround_time, n, burst_time, waiting_time);
+
+    avgTime(processes, n, burst_time, completiontime, waiting_time, turnaround_time, arrival_time, response_time);
+
+    scheduling_length = max - min;
+    throughput = (float) n / scheduling_length;
+
+    cout << "Scheduling Length: " << scheduling_length << endl;
+    cout << "Throughput: " << throughput << endl;
+
+      cout << "Gantt Chart:" << endl;
+    for (int i = 0; i < gantt.size(); i++) {
+        cout <<"P"<<gantt[i].first + 1<<"\t";
+        if (i < gantt.size() - 1) {
+            cout << "|";
+        }
+    }
+    cout << endl;
+    for (int i = 0; i < gantt.size(); i++) {
+        cout << gantt[i].second ;
+        if (i < gantt.size() - 1) {
+            cout <<"\t";
+        }
+    }
+    cout << endl;
+
+
+    return 0;
+}
